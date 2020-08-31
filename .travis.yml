@@ -1,0 +1,23 @@
+language: generic
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t grinbergjeff/complex-react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true grinbergjeff/complex-react-test npm test
+
+after_success:
+  - docker build -t grinbergjeff/multi-client ./client
+  - docker build -t grinbergjeff/multi-nginx ./nginx
+  - docker build -t grinbergjeff/multi-server ./server
+  - docker build -t grinbergjeff/multi-worker ./worker
+  # Log in to the docker CLI
+  - docker login -u "$DOCKER_ID" -p "$DOCKER_PASSWORD"
+  # Push to Docker Hub
+  - docker push grinbergjeff/multi-client
+  - docker push grinbergjeff/multi-nginx
+  - docker push grinbergjeff/multi-server
+  - docker push grinbergjeff/multi-worker
